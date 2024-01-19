@@ -42,6 +42,7 @@ namespace LCExtendedHUD.Patches {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(HUDManager),"Update")]
         private static void updateHUDPatches(HUDManager __instance) {
+            ExtendedHUD.Log.LogInfo("HUD update");
             updateReticle();
             updateProfit();
             updateConductive();
@@ -49,27 +50,39 @@ namespace LCExtendedHUD.Patches {
 
         private static void drawReticle() {
             GameObject cursor = GameObject.Find("Systems/UI/Canvas/PlayerCursor/Cursor");
-            _reticle = GameObject.Instantiate(cursor.gameObject, cursor.transform.parent, false);
-            _reticle.name = "Reticle";
-            _reticleImage = _reticle.GetComponent<Image>();
+            HUDPatches._reticle = GameObject.Instantiate(cursor.gameObject, cursor.transform.parent, false);
+            HUDPatches._reticle.name = "Reticle";
+            HUDPatches._reticleImage = _reticle.GetComponent<Image>();
             Texture2D reticleTexture = LoadTexture(RETICLE_TEXTURE_PATH);
             Sprite reticleSprite = Sprite.Create(
                 reticleTexture,
                 new Rect(0, 0, reticleTexture.width, reticleTexture.height),
                 Vector2.zero);
-            _reticleImage.sprite = reticleSprite;
-            _reticleImage.enabled = true;
-            _reticle.transform.localScale = new Vector3(-0.036f, -0.036f, 0.364f);
+            HUDPatches._reticleImage.sprite = reticleSprite;
+            HUDPatches._reticleImage.enabled = true;
+            HUDPatches._reticle.transform.localScale = new Vector3(-0.036f, -0.036f, 0.364f);
         }
 
         private static void updateReticle() {
             if (_reticle == null ||
+                _reticleImage == null ||
                 GameNetworkManager.Instance == null ||
-                GameNetworkManager.Instance.localPlayerController == null) 
+                GameNetworkManager.Instance.localPlayerController == null) {
                     return;
+            }
 
-            if (GameNetworkManager.Instance.localPlayerController.isPlayerDead && _reticleImage.enabled) _reticleImage.enabled = false;
-            else if (!GameNetworkManager.Instance.localPlayerController.isPlayerDead && !_reticleImage.enabled) _reticleImage.enabled = true;
+            Image cursor = GameObject.Find("Systems/UI/Canvas/PlayerCursor/Cursor").GetComponent<Image>();
+
+            if (
+                (GameNetworkManager.Instance.localPlayerController.isPlayerDead 
+                || cursor.enabled) && HUDPatches._reticleImage.enabled
+                ) {
+                HUDPatches._reticleImage.enabled = (false);
+            } else if (!GameNetworkManager.Instance.localPlayerController.isPlayerDead && ! HUDPatches._reticleImage.enabled && !cursor.enabled) {
+                ExtendedHUD.Log.LogInfo("Reticle enabled");
+
+                HUDPatches._reticleImage.enabled =(true);
+            } 
         }
 
         private static void drawProfit() {
