@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace LCExtendedHUD.Patches {
     [HarmonyPatch]
-    internal class HUDPatches {
+    static internal class HUDPatches {
 
         private static GameObject _reticle;
         private static Image _reticleImage;
@@ -88,8 +88,10 @@ namespace LCExtendedHUD.Patches {
         private static void drawProfit() {
 
             GameObject weightCounter = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/WeightUI");
-            if (weightCounter == null)
+            if (weightCounter == null) {
                 ExtendedHUD.Log.LogError($"Cannot obtain weight UI");
+                return;
+            }
 
             HUDPatches._scrapCounter = UnityEngine.Object.Instantiate<GameObject>(weightCounter.gameObject, weightCounter.transform.parent, false);
 
@@ -135,8 +137,10 @@ namespace LCExtendedHUD.Patches {
         private static void drawConductive() {
 
             GameObject weightCounter = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/WeightUI");
-            if (weightCounter == null)
+            if (weightCounter == null) {
                 ExtendedHUD.Log.LogError($"Cannot obtain weight UI");
+                return;
+            }
 
             HUDPatches._conductiveDisplay = UnityEngine.Object.Instantiate<GameObject>(weightCounter.gameObject, weightCounter.transform.parent, false);
 
@@ -178,13 +182,12 @@ namespace LCExtendedHUD.Patches {
             }
 
 
-            _conductiveDisplayMesh.text = GameNetworkManager.Instance.localPlayerController.ItemSlots.Where(item => item != null && item.itemProperties.isConductiveMetal).Count() > 0 ? CONDUCTIVE_TEXT : NOT_CONDUCTIVE_TEXT;
+            _conductiveDisplayMesh.text = GameNetworkManager.Instance.localPlayerController.ItemSlots.Count(item => item != null && item.itemProperties.isConductiveMetal) > 0 ? CONDUCTIVE_TEXT : NOT_CONDUCTIVE_TEXT;
         }
 
 
         private static IEnumerator awaitPlayerController() {
             yield return new WaitUntil(() => GameNetworkManager.Instance.localPlayerController != null);
-            yield break;
         }
 
         private static Texture2D LoadTexture(string resource) {
