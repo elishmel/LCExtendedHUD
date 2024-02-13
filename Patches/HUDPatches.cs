@@ -1,11 +1,10 @@
 ﻿using HarmonyLib;
-using System.Collections;
-using UnityEngine;
-using TMPro;
-using UnityEngine.UI;
 using LCExtendedHUD.Utility;
-using UnityEngine.UIElements.UIR;
+using System.Collections;
 using System.Linq;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace LCExtendedHUD.Patches {
     [HarmonyPatch]
@@ -31,7 +30,7 @@ namespace LCExtendedHUD.Patches {
         private const string RETICLE_TEXTURE_PATH = "Assets.circle.png";
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(HUDManager),"Awake")]
+        [HarmonyPatch(typeof(HUDManager), "Awake")]
         private static void buildHUDPatches(HUDManager __instance) {
             __instance.StartCoroutine(awaitPlayerController());
             drawReticle();
@@ -40,9 +39,8 @@ namespace LCExtendedHUD.Patches {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(HUDManager),"Update")]
+        [HarmonyPatch(typeof(HUDManager), "Update")]
         private static void updateHUDPatches(HUDManager __instance) {
-            ExtendedHUD.Log.LogInfo("HUD update");
             updateReticle();
             updateProfit();
             updateConductive();
@@ -68,37 +66,35 @@ namespace LCExtendedHUD.Patches {
                 _reticleImage == null ||
                 GameNetworkManager.Instance == null ||
                 GameNetworkManager.Instance.localPlayerController == null) {
-                    return;
+                return;
             }
 
             Image cursor = GameObject.Find("Systems/UI/Canvas/PlayerCursor/Cursor").GetComponent<Image>();
 
             if (
-                (GameNetworkManager.Instance.localPlayerController.isPlayerDead 
+                (GameNetworkManager.Instance.localPlayerController.isPlayerDead
                 || cursor.enabled) && HUDPatches._reticleImage.enabled
                 ) {
                 HUDPatches._reticleImage.enabled = (false);
-            } else if (!GameNetworkManager.Instance.localPlayerController.isPlayerDead && ! HUDPatches._reticleImage.enabled && !cursor.enabled) {
-                ExtendedHUD.Log.LogInfo("Reticle enabled");
-
-                HUDPatches._reticleImage.enabled =(true);
-            } 
+            } else if (!GameNetworkManager.Instance.localPlayerController.isPlayerDead && !HUDPatches._reticleImage.enabled && !cursor.enabled) {
+                HUDPatches._reticleImage.enabled = (true);
+            }
         }
 
         private static void drawProfit() {
 
             GameObject weightCounter = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/WeightUI");
             if (weightCounter == null) {
+#if DEBUG
                 ExtendedHUD.Log.LogError($"Cannot obtain weight UI");
+#endif
                 return;
             }
 
             HUDPatches._scrapCounter = UnityEngine.Object.Instantiate<GameObject>(weightCounter.gameObject, weightCounter.transform.parent, false);
 
-            if (HUDPatches._scrapCounter)
-                ExtendedHUD.Log.LogInfo("Weight counter found and copied.");
-            else {
-                ExtendedHUD.Log.LogError("Unable to create counter copy.");
+            if (!HUDPatches._scrapCounter) {
+                ExtendedHUD.Log.LogError("Unable to create scrap copy.");
                 return;
             }
 
@@ -110,16 +106,13 @@ namespace LCExtendedHUD.Patches {
 
             HUDPatches._scrapTextMesh = HUDPatches._scrapCounter.GetComponentInChildren<TextMeshProUGUI>();
             if (!HUDPatches._scrapTextMesh) {
-                ExtendedHUD.Log.LogError("No TextMesh found.");
                 return;
-            } else {
-                ExtendedHUD.Log.LogInfo("Text mesh found.");
             }
             HUDPatches._scrapTextMesh.name = "Credits";
             HUDPatches._scrapTextMesh.text = $"0 {PROFIT_TEXT}";
 
         }
-        
+
         private static void updateProfit() {
 
             if (GameNetworkManager.Instance.localPlayerController == null
@@ -138,7 +131,9 @@ namespace LCExtendedHUD.Patches {
 
             GameObject weightCounter = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/WeightUI");
             if (weightCounter == null) {
+#if DEBUG
                 ExtendedHUD.Log.LogError($"Cannot obtain weight UI");
+#endif
                 return;
             }
 
@@ -158,10 +153,10 @@ namespace LCExtendedHUD.Patches {
             HUDPatches._conductiveDisplayMesh = HUDPatches._conductiveDisplay.GetComponentInChildren<TextMeshProUGUI>();
             HUDPatches._conductiveDisplayMesh.name = "Conductive";
             if (!HUDPatches._conductiveDisplayMesh) {
+#if DEBUG
                 ExtendedHUD.Log.LogError("No TextMesh found.");
+#endif
                 return;
-            } else {
-                ExtendedHUD.Log.LogInfo("Text mesh found.");
             }
 
             HUDPatches._conductiveDisplayMesh.text = NOT_CONDUCTIVE_TEXT;
@@ -192,7 +187,9 @@ namespace LCExtendedHUD.Patches {
 
         private static Texture2D LoadTexture(string resource) {
             byte[] fileData = ResourceLoader.GetResourceFromCurrentAssemblyAsBytes(resource);
+#if DEBUG
             ExtendedHUD.Log.LogInfo($"Loaded {fileData.Length} bytes from {resource}");
+#endif
             Texture2D texture = new Texture2D(25, 25);
             texture.LoadImage(fileData);
             return texture;
